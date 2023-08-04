@@ -961,3 +961,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Velocidad: 2.5
+  Completo: 1
+  Model: {fileID: 870713780}
+  VelRotacion: 10
