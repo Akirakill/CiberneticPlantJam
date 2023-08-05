@@ -13,6 +13,16 @@ public class Player_Movement : MonoBehaviour
     Rigidbody Rbody;
     public GameObject Model;
     public float VelRotacion;
+   [HideInInspector]public bool Grounded;
+    public AnimationCurve CurvaSalto;
+    public AnimationCurve CurvaCaida;
+    bool Jumped;
+    float YVal;
+    public float AlturaSalto;
+    float AltSaltoReal;
+
+    float tiempo;
+    public float ValCurva;
     void Start()
     {
         In_ = gameObject.GetComponent<Player_Inputs>();   
@@ -26,6 +36,7 @@ public class Player_Movement : MonoBehaviour
     void FixedUpdate()
     {
         CharMovement();
+        CharJump();
     }
 
     private void CharMovement()
@@ -44,6 +55,54 @@ public class Player_Movement : MonoBehaviour
         {
             Quaternion ToRot = Quaternion.LookRotation(LookDir,Vector3.up);
             Model.transform.rotation = Quaternion.Lerp(Model.transform.rotation, ToRot, VelRotacion * Time.deltaTime);
+        }
+    }
+
+    void CharJump()
+    {
+        RaycastHit hit;
+        Vector3 RayStartPos = new Vector3(transform.position.x, transform.position.y + .5f, transform.position.z);
+        Grounded = Physics.Raycast(RayStartPos, -transform.up, out hit, .5f);
+        Debug.DrawRay(transform.position, -transform.up, Color.red);
+
+
+
+
+        if (In_.Jump_ && Grounded) 
+        {
+            Jumped = true;
+            In_.Jump_ = false;
+        }
+
+        if (Jumped) 
+        {
+
+            tiempo += Time.deltaTime;
+            ValCurva = CurvaSalto.Evaluate(tiempo);
+            YVal = Mathf.MoveTowards(transform.position.y, AltSaltoReal,  ValCurva/AlturaSalto);
+            transform.position = new Vector3(transform.position.x, YVal, transform.position.z);
+        }
+
+        if (Jumped && YVal >= AltSaltoReal-.25f) 
+        {
+            tiempo = 0;
+            Jumped = false;
+
+        }
+
+        if (!Grounded && !Jumped) 
+        {
+            tiempo += Time.deltaTime;
+            ValCurva = CurvaCaida.Evaluate(tiempo);
+            YVal = Mathf.MoveTowards(YVal, -2.5f, ValCurva);
+            transform.position = new Vector3(transform.position.x, YVal, transform.position.z);
+        }
+
+        if (Grounded) 
+        {
+            tiempo = 0;
+            YVal = transform.position.y;
+            AltSaltoReal = transform.position.y + AlturaSalto;
         }
     }
 }
