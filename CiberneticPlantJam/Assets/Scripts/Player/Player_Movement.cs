@@ -20,7 +20,7 @@ public class Player_Movement : MonoBehaviour
     float YVal;
     public float AlturaSalto;
     float AltSaltoReal;
-
+    bool CanJump;
     float tiempo;
     public float ValCurva;
     void Start()
@@ -36,12 +36,14 @@ public class Player_Movement : MonoBehaviour
     void FixedUpdate()
     {
         CharMovement();
-        CharJump();
+        CharJump();  
+        
+
     }
 
     private void CharMovement()
     {
-        if (Completo) { VelActual = Velocidad; }else if (!Completo) { VelActual = VelMin; }
+        if (Completo) { VelActual = Velocidad; CanJump = true; }else if (!Completo) { VelActual = VelMin; CanJump = false; }
 
         Direction = In_.DirInput; 
         Direction = Direction.normalized;
@@ -62,13 +64,19 @@ public class Player_Movement : MonoBehaviour
     {
         RaycastHit hit;
         Vector3 RayStartPos = new Vector3(transform.position.x, transform.position.y + .5f, transform.position.z);
-        Grounded = Physics.Raycast(RayStartPos, -transform.up, out hit, .5f);
+
+        if (Physics.Raycast(RayStartPos, -transform.up, out hit, .5f) && hit.transform.tag != ("NoCollision")) 
+        {
+            Grounded = true;
+        }
+        else { Grounded = false; }
+
         Debug.DrawRay(transform.position, -transform.up, Color.red);
 
 
 
 
-        if (In_.Jump_ && Grounded) 
+        if (In_.Jump_ && Grounded && CanJump) 
         {
             Jumped = true;
             In_.Jump_ = false;
