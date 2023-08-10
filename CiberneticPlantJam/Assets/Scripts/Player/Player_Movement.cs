@@ -23,6 +23,7 @@ public class Player_Movement : MonoBehaviour
     bool CanJump;
     float tiempo;
     public float ValCurva;
+    [HideInInspector] public bool Moving;
     void Start()
     {
         In_ = gameObject.GetComponent<Player_Inputs>();   
@@ -48,6 +49,8 @@ public class Player_Movement : MonoBehaviour
         Direction = In_.DirInput; 
         Direction = Direction.normalized;
         Rbody.velocity = ( new Vector3 (Direction.x * ((VelActual * 100f) * Time.deltaTime),0f,Direction.y * ((VelActual * 100f) * Time.deltaTime)));
+
+        if (Direction != Vector2.zero) { Moving = true; } else { Moving = false; }
     }
 
     void RotarModelo() 
