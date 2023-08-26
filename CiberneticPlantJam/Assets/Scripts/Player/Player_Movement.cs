@@ -24,6 +24,11 @@ public class Player_Movement : MonoBehaviour
     float tiempo;
     public float ValCurva;
     [HideInInspector] public bool Moving;
+    public float RollAccel;
+    [SerializeField] Vector2 RollDir;
+    [SerializeField] float RollX, RollY;
+    public Transform Center;
+
     void Start()
     {
         In_ = gameObject.GetComponent<Player_Inputs>();   
@@ -44,10 +49,16 @@ public class Player_Movement : MonoBehaviour
 
     private void CharMovement()
     {
-        if (Completo) { VelActual = Velocidad; CanJump = true; }else if (!Completo) { VelActual = VelMin; CanJump = false; }
+        if (Completo) { VelActual = Velocidad; CanJump = true;
+            Direction = In_.DirInput;
+            Direction = Direction.normalized;
+        }
+        else if (!Completo) { CharRolling();
+            VelActual = Velocidad;
+            Direction = RollDir;
+        }
 
-        Direction = In_.DirInput; 
-        Direction = Direction.normalized;
+
         Rbody.velocity = ( new Vector3 (Direction.x * ((VelActual * 100f) * Time.deltaTime),0f,Direction.y * ((VelActual * 100f) * Time.deltaTime)));
 
         if (Direction != Vector2.zero) { Moving = true; } else { Moving = false; }
@@ -115,5 +126,27 @@ public class Player_Movement : MonoBehaviour
             YVal = transform.position.y;
             AltSaltoReal = transform.position.y + AlturaSalto;
         }
+    }
+
+    void CharRolling() 
+    {
+        RollDir = new Vector2(RollX *.01f, RollY*.01f);
+
+        if (In_.DirInput.x != 0) { 
+            if (In_.DirInput.x <= 0) { RollX = Mathf.Lerp(RollX, -100, Time.deltaTime ); } 
+       else if (In_.DirInput.x >= 0) { RollX = Mathf.Lerp(RollX, 100, Time.deltaTime ); }    
+        }
+        else { RollX = Mathf.MoveTowards(RollX, 0, Time.deltaTime * RollAccel*5); }
+
+        if (In_.DirInput.y != 0)
+        {
+            if (In_.DirInput.y <= 0) { RollY = Mathf.Lerp(RollY, -100, Time.deltaTime); }
+            else if (In_.DirInput.y >= 0) { RollY = Mathf.Lerp(RollY, 100, Time.deltaTime); }
+        }
+        else { RollY = Mathf.MoveTowards(RollY, 0, Time.deltaTime * RollAccel * 5); }
+
+        if (RollDir.x != 0  || RollDir.y != 0) { Center.Rotate(new Vector3(RollAccel + (Time.deltaTime*2), Center.rotation.y, 0f)); }
+        else { Center.rotation = Quaternion.Slerp(Center.rotation, Quaternion.Euler(Vector3.zero), Time.deltaTime * 2.5f); }
+
     }
 }
